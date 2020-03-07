@@ -46,9 +46,108 @@ def lex(to_compile):
     return iterator
 
 
-def get_ast(token_iterator):
-    return None
+# returns abstract syntax tree (AST) after successfully processing tokens
+def get_ast(tokens):
+    tree = parse_program(tokens)
 
+
+# for now, program is just a function declaration
+def parse_program(tokens):
+    func = parse_function(tokens)
+    node = Program(func)
+    return node
+
+
+def parse_function(tokens):
+    ret_type = next(tokens)
+    if ret_type.type.name not in ("INT"):
+        print("a")
+
+    name = next(tokens)
+    if name.type.name != "IDENTIFIER":
+        print("b")
+    
+    t = next(tokens)
+    if t.type.name != "OPEN_PARENTHESIS":
+        print("c")
+
+    t = next(tokens)
+    if t.type.name != "CLOSE_PARENTHESIS":
+        print("d")
+
+    t = next(tokens)
+    if t.type.name != "OPEN_BRACE":
+        print("e")
+
+    # for now, function body is just one statement
+    statement = parse_statement(tokens)
+
+    # create function node
+    node = Function(ret_type.string, name.string, statement) 
+
+    t = next(tokens)
+    if t.type.name != "CLOSE_BRACE":
+        print("f")
+
+    return node
+
+
+# for now, only statement available is return statement
+def parse_statement(tokens):
+    t = next(tokens)
+    if t.type.name != "RETURN":
+        print("aa")
+
+    # for now, expression can only be integer literal
+    expression = parse_expression(tokens)
+    
+    node = Return(expression)
+
+    t = next(tokens)
+    if t.type.name != "SEMICOLON":
+        print("bb")
+
+    return node
+
+
+def parse_expression(tokens):
+    integer = next(tokens)
+    if integer.type.name != "INTEGER_LITERAL":
+        print("cc")
+    if int(integer.string) > 2147483647:
+        print("dd")
+
+    # for now, expression can only be integer literal
+    node = Const(integer)
+
+    return node
+
+
+class Program:
+    def __init__(self, function):
+        self.function = function
+
+
+class Function:
+    def __init__(self, ret_val, name, body):
+        self.ret_val = ret_val
+        self.name = name
+        self.body = body 
+
+
+class Return:
+    def __init__(self, expression):
+        self.expression = expression
+
+
+class Const:
+    def __init__(self, value):
+        self.value = value
+
+
+class Const:
+    def __init__(self, value):
+        self.value = value
 
 class Token:
     def __init__(self, string, token_type):
@@ -109,6 +208,7 @@ def merge_regexps(token_types):
         result += t.regexp + '|'
 
     return result[:-1]
+
 
 if __name__ == '__main__':
     main()
