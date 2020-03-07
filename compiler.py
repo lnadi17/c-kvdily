@@ -19,21 +19,48 @@ def lex(to_compile):
     with open(to_compile, 'r') as f:
         content = f.read()
 
-    tts = create_token_types()
-    regex = merge_regexps(tts)
+    token_types = create_token_types()
+    token_strings = re.findall(merge_regexps(token_types), content)
 
-    tags = re.findall(regex, content)
-    print("Tokenized code:", tags)
+    tokens = []
 
-    return tags
+    # for each token string, find it's corresponding token type, 
+    # create Token object from it and put that object in tokens list
+    for string in token_strings:
+        for t in token_types:
+            if re.fullmatch(t.pattern, string) != None:
+                token = Token(string, t)
+                tokens.append(token)
+                break
+            
+    # print found tokens
+    print("Tokenized code:")
+    for t in tokens:
+        print(t)
+
+    # create iterator from tokens for easier parsing
+    iterator = iter(tokens)
+    next(iterator)
+
+
+class Token:
+    def __init__(self, string, token_type):
+        self.string = string
+        self.type = token_type
+
+    def __repr__(self):
+        return "<" + '"' + self.string + '" | ' + 'TYPE: ' + self.type.name + ">"
 
 
 class TokenType:
     def __init__(self, name, regexp):
         self.name = name
         self.regexp = regexp
+        self.pattern = re.compile(regexp)
 
 
+# WARNING: the most general regular expressions should be added last in token_types.
+#          that's because keywords satisify identifier regexp too.
 def create_token_types():
     token_types = []
 
