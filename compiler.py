@@ -22,6 +22,7 @@ def lex(to_compile):
         # print(content)
 
     token_types = create_token_types()
+    keywords = ("INT", "RETURN");
     token_strings = re.findall(merge_regexps(token_types), content)
 
     tokens = []
@@ -31,6 +32,9 @@ def lex(to_compile):
     for string in token_strings:
         for t in token_types:
             if re.fullmatch(t.pattern, string) != None:
+                # if token is keyword (int, return, etc.) remove space from the end
+                if t.name in keywords:
+                    string = string[:-1]
                 token = Token(string, t)
                 tokens.append(token)
                 break
@@ -64,23 +68,28 @@ def parse_program(tokens):
 def parse_function(tokens):
     ret_type = next(tokens)
     if ret_type.type.name not in ("INT"):
-        print("a")
+        print("Expected function return type")
+        exit()
 
     name = next(tokens)
     if name.type.name != "IDENTIFIER":
-        print("b")
+        print("Expected function identifier")
+        exit()
     
     t = next(tokens)
     if t.type.name != "OPEN_PARENTHESIS":
-        print("c")
+        print("Missing open parenthesis")
+        exit()
 
     t = next(tokens)
     if t.type.name != "CLOSE_PARENTHESIS":
-        print("d")
+        print("Missing close parenthesis")
+        exit()
 
     t = next(tokens)
     if t.type.name != "OPEN_BRACE":
-        print("e")
+        print("Missing open brace")
+        exit()
 
     # for now, function body is just one statement
     statement = parse_statement(tokens)
@@ -90,7 +99,8 @@ def parse_function(tokens):
 
     t = next(tokens)
     if t.type.name != "CLOSE_BRACE":
-        print("f")
+        print("Missing close brace")
+        exit()
 
     return node
 
@@ -99,7 +109,8 @@ def parse_function(tokens):
 def parse_statement(tokens):
     t = next(tokens)
     if t.type.name != "RETURN":
-        print("aa")
+        print("Invalid return statement")
+        exit()
 
     # for now, expression can only be integer literal
     expression = parse_expression(tokens)
@@ -108,7 +119,8 @@ def parse_statement(tokens):
 
     t = next(tokens)
     if t.type.name != "SEMICOLON":
-        print("bb")
+        print("Missing semicolon")
+        exit()
 
     return node
 
@@ -116,9 +128,11 @@ def parse_statement(tokens):
 def parse_expression(tokens):
     integer = next(tokens)
     if integer.type.name != "INTEGER_LITERAL":
-        print("cc")
+        print("Missing return value")
+        exit()
     if int(integer.string) > 2147483647:
-        print("dd")
+        print("Integer limit exceeded")
+        exit()
 
     # for now, expression can only be integer literal
     node = Const(int(integer.string))
@@ -197,10 +211,10 @@ def create_token_types():
     token_types.append(TokenType("SEMICOLON", ";"))
 
     # int keyword
-    token_types.append(TokenType("INT", "int"))
+    token_types.append(TokenType("INT", "int "))
 
     # return keyword
-    token_types.append(TokenType("RETURN", "return"))
+    token_types.append(TokenType("RETURN", "return "))
 
     # identifier
     token_types.append(TokenType("IDENTIFIER", "[a-zA-Z]\w*"))
