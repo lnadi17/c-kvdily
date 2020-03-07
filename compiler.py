@@ -19,8 +19,8 @@ def lex(to_compile):
     with open(to_compile, 'r') as f:
         content = f.read()
 
-    tokens = create_tokens()
-    regex = merge_tokens(tokens)
+    tts = create_token_types()
+    regex = merge_regexps(tts)
 
     tags = re.findall(regex, content)
     print("Tokenized code:", tags)
@@ -28,49 +28,50 @@ def lex(to_compile):
     return tags
 
 
-class Token:
+class TokenType:
     def __init__(self, name, regexp):
         self.name = name
         self.regexp = regexp
 
-def create_tokens():
-    tokens = []
+
+def create_token_types():
+    token_types = []
 
     # open brace
-    tokens.append(Token("OPEN_BRACE", "{"))
+    token_types.append(TokenType("OPEN_BRACE", "{"))
 
     # close brace
-    tokens.append(Token("CLOSE_BRACE", "}"))
+    token_types.append(TokenType("CLOSE_BRACE", "}"))
 
     # open parenthesis
-    tokens.append(Token("OPEN_PARENTHESIS", "\("))
+    token_types.append(TokenType("OPEN_PARENTHESIS", "\("))
 
     # close parenthesis
-    tokens.append(Token("CLOSE_PARENTHESIS", "\)"))
+    token_types.append(TokenType("CLOSE_PARENTHESIS", "\)"))
 
     # semicolon
-    tokens.append(Token("SEMICOLON", ";"))
+    token_types.append(TokenType("SEMICOLON", ";"))
 
     # int keyword
-    tokens.append(Token("INT", "int"))
+    token_types.append(TokenType("INT", "int"))
 
     # return keyword
-    tokens.append(Token("RETURN", "return"))
+    token_types.append(TokenType("RETURN", "return"))
 
     # identifier
-    tokens.append(Token("IDENTIFIER", "[a-zA-Z]\w*"))
+    token_types.append(TokenType("IDENTIFIER", "[a-zA-Z]\w*"))
 
     # integer literal
-    tokens.append(Token("INTEGER_LITERAL", "[0-9]+"))
+    token_types.append(TokenType("INTEGER_LITERAL", "[0-9]+"))
     
-    return tokens
+    return token_types
 
 
 # creates regular expression from all individiual tokens' regular expressions
-def merge_tokens(tokens):
+def merge_regexps(token_types):
     result = ""
     
-    for t in tokens:
+    for t in token_types:
         result += t.regexp + '|'
 
     return result[:-1]
