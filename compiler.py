@@ -49,6 +49,9 @@ def lex(to_compile):
 # returns abstract syntax tree (AST) after successfully processing tokens
 def get_ast(tokens):
     tree = parse_program(tokens)
+    print("Abstract Syntax Tree:")
+    print(tree)
+    return tree
 
 
 # for now, program is just a function declaration
@@ -118,7 +121,7 @@ def parse_expression(tokens):
         print("dd")
 
     # for now, expression can only be integer literal
-    node = Const(integer)
+    node = Const(int(integer.string))
 
     return node
 
@@ -127,27 +130,35 @@ class Program:
     def __init__(self, function):
         self.function = function
 
+    def __str__(self, depth=0):
+        return "PROGRAM:\n" + self.function.__str__(depth + 1)
+
 
 class Function:
     def __init__(self, ret_val, name, body):
         self.ret_val = ret_val
         self.name = name
         self.body = body 
+    
+    def __str__(self, depth=0):
+        return ("\t" * depth) + "FUNCTION " + self.ret_val + " " + self.name + ":\n" + self.body.__str__(depth + 1)
 
 
 class Return:
     def __init__(self, expression):
         self.expression = expression
 
-
-class Const:
-    def __init__(self, value):
-        self.value = value
+    def __str__(self, depth=0):
+        return ("\t" * depth) + "RETURN " + self.expression.__str__(depth + 1)
 
 
 class Const:
     def __init__(self, value):
         self.value = value
+
+    def __str__(self, depth=0):
+        return "CONST " + str(self.value)
+
 
 class Token:
     def __init__(self, string, token_type):
