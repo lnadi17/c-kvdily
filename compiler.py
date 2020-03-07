@@ -12,12 +12,14 @@ def main():
 
     print("Compiling", to_compile)
 
-    lex(to_compile)
+    get_ast(lex(to_compile))
 
 
 def lex(to_compile):
     with open(to_compile, 'r') as f:
         content = f.read()
+        # print("Actual code:")
+        # print(content)
 
     token_types = create_token_types()
     token_strings = re.findall(merge_regexps(token_types), content)
@@ -40,7 +42,12 @@ def lex(to_compile):
 
     # create iterator from tokens for easier parsing
     iterator = iter(tokens)
-    next(iterator)
+
+    return iterator
+
+
+def get_ast(token_iterator):
+    return None
 
 
 class Token:
