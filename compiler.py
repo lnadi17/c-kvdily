@@ -24,11 +24,9 @@ def main():
 def lex(to_compile):
     with open(to_compile, 'r') as f:
         content = f.read()
-        # print("Actual code:")
-        # print(content)
 
     token_types = create_token_types()
-    keywords = ("INT", "RETURN");
+    # keywords = ("INT", "RETURN");
     token_strings = re.findall(merge_regexps(token_types), content)
 
     tokens = []
@@ -38,9 +36,9 @@ def lex(to_compile):
     for string in token_strings:
         for t in token_types:
             if re.fullmatch(t.pattern, string) != None:
-                # if token is keyword (int, return, etc.) remove space from the end
-                if t.name in keywords:
-                    string = string[:-1]
+                # if token is keyword (int, return, etc.) removes whitespace from the end
+                string = string.rstrip()
+
                 token = Token(string, t)
                 tokens.append(token)
                 break
@@ -235,8 +233,6 @@ class TokenType:
         self.pattern = re.compile(regexp)
 
 
-# WARNING: the most general regular expressions should be added last in token_types.
-#          that's because keywords satisify identifier regexp too.
 def create_token_types():
     token_types = []
 
@@ -256,10 +252,10 @@ def create_token_types():
     token_types.append(TokenType("SEMICOLON", ";"))
 
     # int keyword
-    token_types.append(TokenType("INT", "int "))
+    token_types.append(TokenType("INT", "int\s+"))
 
     # return keyword
-    token_types.append(TokenType("RETURN", "return "))
+    token_types.append(TokenType("RETURN", "return\s+"))
 
     # identifier
     token_types.append(TokenType("IDENTIFIER", "[a-zA-Z]\w*"))
