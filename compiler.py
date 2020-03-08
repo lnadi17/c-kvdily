@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
 import re 
 import sys
+import os
 
 
 
@@ -10,9 +12,13 @@ def main():
         print("Error: No file is given to compile.\nExample: python3 compiler.py to_compile.c\nExiting...")
         exit()
 
-    print("Compiling", to_compile)
+    print("Compiling " + to_compile)
 
-    get_ast(lex(to_compile))
+    assembly_code = get_assembly(get_ast(lex(to_compile)))
+    print("\nAssembly code:")
+    print(assembly_code)
+
+    generate_executable(to_compile, assembly_code)
 
 
 def lex(to_compile):
@@ -40,7 +46,7 @@ def lex(to_compile):
                 break
             
     # print found tokens
-    print("Tokenized code:")
+    print("\nTokenized code:")
     for t in tokens:
         print(t)
 
@@ -53,9 +59,33 @@ def lex(to_compile):
 # returns abstract syntax tree (AST) after successfully processing tokens
 def get_ast(tokens):
     tree = parse_program(tokens)
-    print("Abstract Syntax Tree:")
+    print("\nAbstract Syntax Tree:")
     print(tree)
     return tree
+
+
+def get_assembly(tree):
+    # newline at the end for readability (and to avoid gcc warning)
+    return tree.generate_assembly() + '\n'
+
+
+def generate_executable(filename, text):
+    # filename looks like "program.c"; we trim last two characters     
+    filename = filename[:-2]
+    
+    with open(filename + '.s', 'w') as f:
+        # write assembly code into .s file
+        f.write(text)
+
+    print("Creating executable file named " + filename)
+
+    # run gcc command
+    os.system("gcc -m32 " + filename + ".s -o " + filename)
+
+    # remove .s file
+    os.remove(filename + '.s') 
+
+    print("Compiled successfully!")
 
 
 # for now, program is just a function declaration
@@ -147,6 +177,9 @@ class Program:
     def __str__(self, depth=0):
         return "PROGRAM:\n" + self.function.__str__(depth + 1)
 
+    def generate_assembly(self):
+        return self.function.generate_assembly()
+
 
 class Function:
     def __init__(self, ret_val, name, body):
@@ -157,6 +190,10 @@ class Function:
     def __str__(self, depth=0):
         return ("\t" * depth) + "FUNCTION " + self.ret_val + " " + self.name + ":\n" + self.body.__str__(depth + 1)
 
+    def generate_assembly(self):
+        text = "\t.globl " + self.name + "\n" + self.name + ":\n"
+        return text + self.body.generate_assembly()
+
 
 class Return:
     def __init__(self, expression):
@@ -165,6 +202,11 @@ class Return:
     def __str__(self, depth=0):
         return ("\t" * depth) + "RETURN " + self.expression.__str__(depth + 1)
 
+    def generate_assembly(self):
+        # if an expression is Const type, its generate_assembly function will return that constant
+        text = self.expression.generate_assembly()
+        return "\tmovl $" + text + ", %eax\n\tret"
+
 
 class Const:
     def __init__(self, value):
@@ -172,6 +214,9 @@ class Const:
 
     def __str__(self, depth=0):
         return "CONST " + str(self.value)
+
+    def generate_assembly(self):
+        return str(self.value)
 
 
 class Token:
