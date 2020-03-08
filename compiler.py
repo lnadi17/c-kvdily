@@ -6,6 +6,9 @@ import os
 
 
 def main():
+    # comment next line to allow prints
+    sys.stdout = open(os.devnull, 'w')
+
     try:
         to_compile = sys.argv[1]
     except IndexError:
