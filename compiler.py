@@ -94,27 +94,27 @@ def parse_program(tokens):
 
 
 def parse_function(tokens):
-    ret_type = next(tokens)
+    ret_type = safe_next(tokens)
     if ret_type.type.name not in ("INT"):
         print("Expected function return type")
         exit()
 
-    name = next(tokens)
+    name = safe_next(tokens)
     if name.type.name != "IDENTIFIER":
         print("Expected function identifier")
         exit()
     
-    t = next(tokens)
+    t = safe_next(tokens)
     if t.type.name != "OPEN_PARENTHESIS":
         print("Missing open parenthesis")
         exit()
 
-    t = next(tokens)
+    t = safe_next(tokens)
     if t.type.name != "CLOSE_PARENTHESIS":
         print("Missing close parenthesis")
         exit()
 
-    t = next(tokens)
+    t = safe_next(tokens)
     if t.type.name != "OPEN_BRACE":
         print("Missing open brace")
         exit()
@@ -125,7 +125,7 @@ def parse_function(tokens):
     # create function node
     node = Function(ret_type.string, name.string, statement) 
 
-    t = next(tokens)
+    t = safe_next(tokens)
     if t.type.name != "CLOSE_BRACE":
         print("Missing close brace")
         exit()
@@ -135,7 +135,7 @@ def parse_function(tokens):
 
 # for now, only statement available is return statement
 def parse_statement(tokens):
-    t = next(tokens)
+    t = safe_next(tokens)
     if t.type.name != "RETURN":
         print("Invalid return statement")
         exit()
@@ -145,7 +145,7 @@ def parse_statement(tokens):
     
     node = Return(expression)
 
-    t = next(tokens)
+    t = safe_next(tokens)
     if t.type.name != "SEMICOLON":
         print("Missing semicolon")
         exit()
@@ -154,7 +154,7 @@ def parse_statement(tokens):
 
 
 def parse_expression(tokens):
-    integer = next(tokens)
+    integer = safe_next(tokens)
     if integer.type.name != "INTEGER_LITERAL":
         print("Missing return value")
         exit()
@@ -274,6 +274,15 @@ def merge_regexps(token_types):
         result += t.regexp + '|'
 
     return result[:-1]
+
+
+# this wrapper funciton avoids failing of iterator
+def safe_next(iterator):
+    try:
+        return next(iterator)
+    except StopIteration:
+        # returns empty token
+        return Token('', TokenType('', ''))
 
 
 if __name__ == '__main__':
