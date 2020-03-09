@@ -126,7 +126,7 @@ def parse_function(tokens):
     statement = parse_statement(tokens)
 
     # create function node
-    node = Function(ret_type.string, name.string, statement) 
+    node = Function(ret_type.type.name, name.string, statement) 
 
     t = safe_next(tokens)
     if t.type.name != "CLOSE_BRACE":
@@ -143,7 +143,6 @@ def parse_statement(tokens):
         print("Invalid return statement")
         exit()
 
-    # for now, expression can only be integer literal
     expression = parse_expression(tokens)
     
     node = Return(expression)
@@ -157,18 +156,23 @@ def parse_statement(tokens):
 
 
 def parse_expression(tokens):
-    integer = safe_next(tokens)
-    if integer.type.name != "INTEGER_LITERAL":
-        print("Missing return value")
-        exit()
-    if int(integer.string) > 2147483647:
-        print("Integer limit exceeded")
-        exit()
+    t = safe_next(tokens)
 
-    # for now, expression can only be integer literal
-    node = Const(int(integer.string))
+    if t.type.name == "INTEGER_LITERAL": 
+        if int(t.string) > 2147483647:
+            print("Integer limit exceeded")
+            exit()
+        node = Const(int(t.string)) 
+        return node
+    else:
+        # if it's not an integer, then it is unary operation
+        if t.type.name not in ("NEGATION", "LOGICAL_NEGATION", "BITWISE_COMPLEMENT"):
+            print("Expected unary operator")
+            exit()
 
-    return node
+        expression = parse_expression(tokens)
+        node = UnaryOperation(t.type.name, expression)  
+        return node
 
 
 class Program:
@@ -201,7 +205,7 @@ class Return:
         self.expression = expression
 
     def __str__(self, depth=0):
-        return ("\t" * depth) + "RETURN " + self.expression.__str__(depth + 1)
+        return ("\t" * depth) + "RETURN:\n" + self.expression.__str__(depth + 1)
 
     def generate_assembly(self):
         # if an expression is Const type, its generate_assembly function will return that constant
@@ -214,10 +218,22 @@ class Const:
         self.value = value
 
     def __str__(self, depth=0):
-        return "CONST " + str(self.value)
+        return ("\t" * depth) + "CONST " + str(self.value)
 
     def generate_assembly(self):
         return str(self.value)
+
+
+class UnaryOperation:
+    def __init__(self, operator, expression):
+        self.operator = operator
+        self.expression = expression
+
+    def __str__(self, depth=0):
+        return ("\t" * depth) + "UNARY " + self.operator + ":\n" + self.expression.__str__(depth + 1)
+    
+    def generate_assembly(self):
+        return ("not implemented")
 
 
 class Token:
