@@ -7,7 +7,7 @@ import os
 
 def main():
     # comment next line to allow prints
-    sys.stdout = open(os.devnull, 'w')
+    # sys.stdout = open(os.devnull, 'w')
 
     try:
         to_compile = sys.argv[1]
@@ -265,6 +265,16 @@ def create_token_types():
 
     # integer literal
     token_types.append(TokenType("INTEGER_LITERAL", "[0-9]+"))
+
+    # negation
+    token_types.append(TokenType("NEGATION", "-"))
+
+    # bitwise complement
+    token_types.append(TokenType("BITWISE_COMPLEMENT", "~"))
+
+    # logical negation
+    token_types.append(TokenType("LOGICAL_NEGATION", "!"))
+
     
     return token_types
 
