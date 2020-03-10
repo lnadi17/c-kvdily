@@ -27,6 +27,8 @@ def main():
 def lex(to_compile):
     with open(to_compile, 'r') as f:
         content = f.read()
+        print("\nActual code:")
+        print(content)
 
     token_types = create_token_types()
     # keywords = ("INT", "RETURN");
@@ -109,17 +111,17 @@ def parse_function(tokens):
     
     t = safe_next(tokens)
     if t.type.name != "OPEN_PARENTHESIS":
-        print("Missing open parenthesis")
+        print("Expected open parenthesis")
         exit()
 
     t = safe_next(tokens)
     if t.type.name != "CLOSE_PARENTHESIS":
-        print("Missing close parenthesis")
+        print("Expected close parenthesis")
         exit()
 
     t = safe_next(tokens)
     if t.type.name != "OPEN_BRACE":
-        print("Missing open brace")
+        print("Expected open brace")
         exit()
 
     # for now, function body is just one statement
@@ -130,7 +132,7 @@ def parse_function(tokens):
 
     t = safe_next(tokens)
     if t.type.name != "CLOSE_BRACE":
-        print("Missing close brace")
+        print("Expected close brace")
         exit()
 
     return node
@@ -149,7 +151,7 @@ def parse_statement(tokens):
 
     t = safe_next(tokens)
     if t.type.name != "SEMICOLON":
-        print("Missing semicolon")
+        print("Expected semicolon")
         exit()
 
     return node
@@ -167,7 +169,7 @@ def parse_expression(tokens):
     else:
         # if it's not an integer, then it is unary operation
         if t.type.name not in ("NEGATION", "LOGICAL_NEGATION", "BITWISE_COMPLEMENT"):
-            print("Expected unary operator")
+            print("Expected constant or unary operator")
             exit()
 
         expression = parse_expression(tokens)
@@ -208,9 +210,9 @@ class Return:
         return ("\t" * depth) + "RETURN:\n" + self.expression.__str__(depth + 1)
 
     def generate_assembly(self):
-        # if an expression is Const type, its generate_assembly function will return that constant
+        # for now, all the expressions write their value in EAX
         text = self.expression.generate_assembly()
-        return "\tmovl $" + text + ", %eax\n\tret"
+        return text + "\n\tret"
 
 
 class Const:
@@ -221,7 +223,7 @@ class Const:
         return ("\t" * depth) + "CONST " + str(self.value)
 
     def generate_assembly(self):
-        return str(self.value)
+        return "\tmovl $" + str(self.value) + ", %eax"
 
 
 class UnaryOperation:
@@ -233,8 +235,15 @@ class UnaryOperation:
         return ("\t" * depth) + "UNARY " + self.operator + ":\n" + self.expression.__str__(depth + 1)
     
     def generate_assembly(self):
-        return ("not implemented")
+        text = self.expression.generate_assembly()
 
+        if self.operator == "NEGATION":
+            return text + "\n\tneg %eax"
+        if self.operator == "LOGICAL_NEGATION":
+            return text + "\n\tcmpl $0, %eax\n\tmovl $0, %eax\n\tsete %al"
+        if self.operator == "BITWISE_COMPLEMENT":
+            return text + "\n\tnot %eax"
+        
 
 class Token:
     def __init__(self, string, token_type):
