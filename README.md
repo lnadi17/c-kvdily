@@ -49,7 +49,7 @@ python3 compiler.py example.c
 ## ტესტები
 ჯერ-ჯერობით მუშაობს stage_1 და stage_2. ტესტების გასაშვებად აკრიფეთ:
 ```
-./test_compiler.sh ./compiler.py
+./test_compiler.sh ./compiler.py 1 2
 ```
 ## ავტორები
 
