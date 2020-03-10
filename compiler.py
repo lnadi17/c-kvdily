@@ -49,7 +49,7 @@ def lex(to_compile):
                 break
             
     # print found tokens
-    print("\nTokenized code:")
+    print("Tokenized code:")
     for t in tokens:
         print(t)
 
@@ -300,6 +300,14 @@ def create_token_types():
     # logical negation
     token_types.append(TokenType("LOGICAL_NEGATION", "!"))
 
+    # addition
+    token_types.append(TokenType("ADDITION", "\+"))
+
+    # multiplication
+    token_types.append(TokenType("MULTIPLICATION", "\*"))
+
+    # division
+    token_types.append(TokenType("DIVISION", "/"))
     
     return token_types
 
